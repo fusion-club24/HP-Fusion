@@ -1,0 +1,19 @@
+$(document).ready(function()
+{
+  $(".hpsn_body").hide();
+  $(".hpsn_upper_body").show();
+  $(".hpsn_master_head").click(function()
+  {
+    $(this).next(".hpsn_master_body").slideToggle(600);
+  });
+  $(".hpsn_master_head").click(function()
+  {
+    $(this).next(".hpsn_body").slideToggle(600);
+    $(this).next(".hpsn_upper_body").slideToggle(600);
+  });
+  $(".hpsn_head").click(function()
+  {
+    $(this).next(".hpsn_body").slideToggle(600);
+    $(this).next(".hpsn_upper_body").slideToggle(600);
+  });
+});
