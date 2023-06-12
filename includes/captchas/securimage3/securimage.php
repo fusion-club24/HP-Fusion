@@ -30,20 +30,28 @@
  * Any modifications to the library should be indicated clearly in the source code
  * to inform users that the changes are not a part of the original software.
  *
- * @link https://www.phpcaptcha.org Securimage Homepage
- * @link https://www.phpcaptcha.org/latest.zip Download Latest Version
- * @link https://github.com/dapphp/securimage GitHub page
- * @link https://www.phpcaptcha.org/Securimage_Docs/ Online Documentation
+ * @link      https://www.phpcaptcha.org Securimage Homepage
+ * @link      https://www.phpcaptcha.org/latest.zip Download Latest Version
+ * @link      https://github.com/dapphp/securimage GitHub page
+ * @link      https://www.phpcaptcha.org/Securimage_Docs/ Online Documentation
  * @copyright 2018 Drew Phillips
- * @author Drew Phillips <drew@drew-phillips.com>
- * @version 3.6.7 (March 2018)
- * @package Securimage
+ * @author    Drew Phillips <drew@drew-phillips.com>
+ * @version   3.6.8 (May 2020)
+ * @package   Securimage
  *
  */
 
 /**
  *
  * ChangeLog
+ * 3.6.8
+ * - Ability to fix open_basedir warning by setting Securimage::$lame_binary_path = ''; (#63)
+ * - Fix division by zero if captcha length is 1 (#88)
+ * - Add options to getCaptchaHtml input_required (#82) and js_url (#95)
+ * - PHP 7.3/7.4 compat fixes (#101)
+ * - Project status: https://github.com/dapphp/securimage/issues/99
+ * - Improve handling of multi-byte wordlists (#87)
+ *
  * 3.6.7
  * - Merge changes from 4.0.1-nextgen
  * - Increase captcha difficulty
@@ -222,6 +230,11 @@
  * @author     Drew Phillips <drew@drew-phillips.com>
  *
  */
+ 
+// Fix deprecated warnings in PHP 8.2
+#[\AllowDynamicProperties]
+//
+
 class Securimage {
     // All of the public variables below are securimage options
     // They can be passed as an array to the Securimage constructor, set below,
@@ -342,14 +355,14 @@ class Securimage {
      *
      * @var int
      */
-    public $image_width = 215;
+    public $image_width = 245;
 
     /**
      * The height of the captcha image
      *
      * @var int
      */
-    public $image_height = 80;
+    public $image_height = 90;
 
     /**
      * Font size is calculated by image height and this ratio.  Leave blank for
@@ -552,7 +565,7 @@ class Securimage {
      * Use an SQLite database to store data (for users that do not support cookies)
      *
      * @var bool
-     * @see Securimage::$database_driver database_driver property
+     * @see        Securimage::$database_driver database_driver property
      * @deprecated 3.2RC4
      */
     public $use_sqlite_db = FALSE;
@@ -706,7 +719,7 @@ class Securimage {
      * Allows word list to contain characters other than US-ASCII (requires compatible TTF font).
      *
      * @var string The character encoding (e.g. UTF-8, UTF-7, EUC-JP, GB2312)
-     * @see http://php.net/manual/en/mbstring.supported-encodings.php
+     * @see   http://php.net/manual/en/mbstring.supported-encodings.php
      * @since 3.6.3
      */
     public $wordlist_file_encoding = NULL;
@@ -725,7 +738,7 @@ class Securimage {
      * The path to the SQLite database file to use
      *
      * @deprecated 3.2RC4
-     * @see Securimage::$database_file database_file property
+     * @see        Securimage::$database_file database_file property
      * @var string
      */
     public $sqlite_database;
@@ -787,7 +800,7 @@ class Securimage {
      * Default: securimage/audio/noise
      *
      * @since 3.0.3
-     * @see Securimage::$audio_noise_path audio_noise_path property
+     * @see   Securimage::$audio_noise_path audio_noise_path property
      * @var bool true = mix, false = no
      */
     public $audio_use_noise;
@@ -1022,10 +1035,6 @@ class Securimage {
      */
     protected $gdsignaturecolor;
 
-    protected $correct_code;
-    protected $code_entered;
-    protected $gdnoisecolor;
-
     /**
      * Create a new securimage object, pass options to set in the constructor.
      *
@@ -1098,7 +1107,7 @@ class Securimage {
         $this->signature_color = $this->initColor($this->signature_color, '#616161');
 
         if (is_null($this->ttf_file)) {
-            $this->ttf_file = $this->securimage_path.'/AHGBold.ttf';
+            $this->ttf_file = $this->securimage_path.'/Montserrat-Bold.ttf';
         }
 
         $this->signature_font = $this->ttf_file;
@@ -1182,9 +1191,9 @@ class Securimage {
     /**
      * Generate a new captcha ID or retrieve the current ID (if exists).
      *
-     * @param bool  $new If true, generates a new challenge and returns and ID.  If false, the existing captcha ID is returned, or null if none exists.
+     * @param bool  $new     If true, generates a new challenge and returns and ID.  If false, the existing captcha ID is returned, or null if none exists.
      * @param array $options Additional options to be passed to Securimage.
-     *   $options must include database settings if they are not set directly in securimage.php
+     *                       $options must include database settings if they are not set directly in securimage.php
      *
      * @return null|string Returns null if no captcha id set and new was false, or the captcha ID
      */
@@ -1208,13 +1217,13 @@ class Securimage {
     /**
      * Validate a captcha code input against a captcha ID
      *
-     * @param string $id The captcha ID to check
-     * @param string $value The captcha value supplied by the user
+     * @param string $id      The captcha ID to check
+     * @param string $value   The captcha value supplied by the user
      * @param array  $options Array of options to construct Securimage with.
-     *   Options must include database options if they are not set in securimage.php
+     *                        Options must include database options if they are not set in securimage.php
      *
-     * @see Securimage::$database_driver
      * @return bool true if the code was valid for the given captcha ID, false if not or if database failed to open
+     * @see Securimage::$database_driver
      */
     public static function checkByCaptchaId($id, $value, array $options = []) {
         $opts = ['captchaId'    => $id,
@@ -1322,6 +1331,8 @@ class Securimage {
      *         true/false  Whether or not to show a button to refresh the image (default: true)
      *     'audio_icon_url':
      *         URL to the image used for showing the HTML5 audio icon
+     *     'js_url':
+     *         URL to the javascript file
      *     'icon_size':
      *         Size (for both height & width) in pixels of the audio and refresh buttons
      *     'show_text_input':
@@ -1346,7 +1357,7 @@ class Securimage {
      *         The optional captcha namespace to use for showing the image and playing back the audio. Namespaces are for using multiple captchas on the same page.
      *
      * @param array $options Array of options for modifying the HTML code.
-     * @param int   $parts Securiage::HTML_* constant controlling what component of the captcha HTML to display
+     * @param int   $parts   Securiage::HTML_* constant controlling what component of the captcha HTML to display
      *
      * @return string  The generated HTML code for displaying the captcha
      */
@@ -1377,12 +1388,14 @@ class Securimage {
         $icon_size = (isset($options['icon_size'])) ? $options['icon_size'] : 32;
         $audio_play_url = (isset($options['audio_play_url'])) ? $options['audio_play_url'] : NULL;
         $audio_swf_url = (isset($options['audio_swf_url'])) ? $options['audio_swf_url'] : NULL;
+        $js_url = (isset($options['js_url'])) ? $options['js_url'] : NULL;
         $show_input = (isset($options['show_text_input'])) ? (bool)$options['show_text_input'] : TRUE;
         $refresh_alt = (isset($options['refresh_alt_text'])) ? $options['refresh_alt_text'] : 'Refresh Image';
         $refresh_title = (isset($options['refresh_title_text'])) ? $options['refresh_title_text'] : 'Refresh Image';
         $input_text = (isset($options['input_text'])) ? $options['input_text'] : 'Type the text:';
         $input_id = (isset($options['input_id'])) ? $options['input_id'] : 'captcha_code';
         $input_name = (isset($options['input_name'])) ? $options['input_name'] : $input_id;
+        $input_required = (isset($options['input_required'])) ? (bool)$options['input_required'] : TRUE;
         $input_attrs = (isset($options['input_attributes'])) ? $options['input_attributes'] : [];
         $image_attrs = (isset($options['image_attributes'])) ? $options['image_attributes'] : [];
         $error_html = (isset($options['error_html'])) ? $options['error_html'] : NULL;
@@ -1448,6 +1461,10 @@ class Securimage {
             $swf_path = $audio_swf_url;
         }
 
+        if (!empty($js_url)) {
+            $js_path = $js_url;
+        }
+
         $audio_obj = $image_id.'_audioObj';
         $html = '';
 
@@ -1462,15 +1479,15 @@ class Securimage {
 
             // check for existence and executability of LAME binary
             // prefer mp3 over wav by sourcing it first, if available
-            /*if (is_executable(Securimage::$lame_binary_path)) {
+            if (!empty(Securimage::$lame_binary_path) && is_executable(Securimage::$lame_binary_path)) {
                 $html .= sprintf('<source id="%s_source_mp3" src="%sid=%s&amp;format=mp3" type="audio/mpeg">', $image_id, $play_path, uniqid())."\n";
-            }*/
+            }
 
             // output wav source
             $html .= sprintf('<source id="%s_source_wav" src="%sid=%s" type="audio/wav">', $image_id, $play_path, uniqid())."\n";
 
             // flash audio button
-            if (!$disable_flash_fbk) {
+            /*if (!$disable_flash_fbk) {
                 $html .= sprintf('<object type="application/x-shockwave-flash" data="%s?bgcol=%s&amp;icon_file=%s&amp;audio_file=%s" height="%d" width="%d">',
                     htmlspecialchars($swf_path),
                     urlencode($audio_but_bg_col),
@@ -1486,8 +1503,8 @@ class Securimage {
                     urlencode(html_entity_decode($play_path))
                 );
 
-                $html .= '</object><br />';
-            }
+                $html .= '</object><br>';
+            }*/
 
             // html5 audio close
             $html .= "</audio>\n</div>\n";
@@ -1551,6 +1568,8 @@ class Securimage {
             $input_attrs['name'] = $input_name;
             $input_attrs['id'] = $input_id;
             $input_attrs['autocomplete'] = 'off';
+            if ($input_required)
+                $input_attrs['required'] = $input_required;
 
             foreach ($input_attrs as $name => $val) {
                 $input_attr .= sprintf('%s="%s" ', $name, htmlspecialchars($val));
@@ -1661,9 +1680,9 @@ class Securimage {
 
             $this->rangeDownload($audio);
         } else {
-            echo '<hr /><strong>'
+            echo '<hr><strong>'
                 .'Failed to generate audio file, content has already been '
-                .'output.<br />This is most likely due to misconfiguration or '
+                .'output.<br>This is most likely due to misconfiguration or '
                 .'a PHP error was sent to the browser.</strong>';
         }
 
@@ -1738,15 +1757,13 @@ class Securimage {
     /**
      * Return the code from the session or database (if configured).  If none exists or was found, an empty string is returned.
      *
-     * @param bool $array true to receive an array containing the code and properties, false to receive just the code.
+     * @param bool $array          true to receive an array containing the code and properties, false to receive just the code.
      * @param bool $returnExisting If true, and the class property *code* is set, it will be returned instead of getting the code from the session or database.
      *
      * @return array|string Return is an array if $array = true, otherwise a string containing the code
      */
     public function getCode($array = FALSE, $returnExisting = FALSE) {
         $code = [];
-        $time = 0;
-        $disp = 'error';
 
         if ($returnExisting && strlen($this->code) > 0) {
             if ($array) {
@@ -1786,9 +1803,11 @@ class Securimage {
 
         if ($array == TRUE) {
             return $code;
-        } else {
+        } else if (!empty($code['code'])) {
             return $code['code'];
         }
+
+        return '';
     }
 
     /**
@@ -2011,30 +2030,30 @@ class Securimage {
 
         switch ($this->captcha_type) {
             case self::SI_CAPTCHA_MATHEMATIC:
-                {
-                    do {
-                        $signs = ['+', '-', 'x'];
-                        $left = mt_rand(1, 10);
-                        $right = mt_rand(1, 5);
-                        $sign = $signs[mt_rand(0, 2)];
+            {
+                do {
+                    $signs = ['+', '-', 'x'];
+                    $left = mt_rand(1, 10);
+                    $right = mt_rand(1, 5);
+                    $sign = $signs[mt_rand(0, 2)];
 
-                        switch ($sign) {
-                            case 'x':
-                                $c = $left * $right;
-                                break;
-                            case '-':
-                                $c = $left - $right;
-                                break;
-                            default:
-                                $c = $left + $right;
-                                break;
-                        }
-                    } while ($c <= 0); // no negative #'s or 0
+                    switch ($sign) {
+                        case 'x':
+                            $c = $left * $right;
+                            break;
+                        case '-':
+                            $c = $left - $right;
+                            break;
+                        default:
+                            $c = $left + $right;
+                            break;
+                    }
+                } while ($c <= 0); // no negative #'s or 0
 
-                    $this->code = "$c";
-                    $this->code_display = "$left $sign $right";
-                    break;
-                }
+                $this->code = "$c";
+                $this->code_display = "$left $sign $right";
+                break;
+            }
 
             case self::SI_CAPTCHA_WORDS:
                 $words = $this->readCodeFromFile(2);
@@ -2043,18 +2062,18 @@ class Securimage {
                 break;
 
             default:
-                {
-                    if ($this->use_wordlist && is_readable($this->wordlist_file)) {
-                        $this->code = $this->readCodeFromFile();
-                    }
+            {
+                if ($this->use_wordlist && is_readable($this->wordlist_file)) {
+                    $this->code = $this->readCodeFromFile();
+                }
 
-                    if ($this->code == FALSE) {
-                        $this->code = $this->generateCode($this->code_length);
-                    }
+                if ($this->code == FALSE) {
+                    $this->code = $this->generateCode($this->code_length);
+                }
 
-                    $this->code_display = $this->code;
-                    $this->code = ($this->case_sensitive) ? $this->code : strtolower($this->code);
-                } // default
+                $this->code_display = $this->code;
+                $this->code = ($this->case_sensitive) ? $this->code : strtolower($this->code);
+            } // default
         }
 
         $this->saveData();
@@ -2064,10 +2083,10 @@ class Securimage {
      * Draws the captcha code on the image
      */
     protected function drawWord() {
-        $ratio = ($this->font_ratio) ? $this->font_ratio : 0.4;
+        $ratio = ($this->font_ratio) ? $this->font_ratio : 0.6;
 
         if ((float)$ratio < 0.1 || (float)$ratio >= 1) {
-            $ratio = 0.4;
+            $ratio = 0.6;
         }
 
         if (!is_readable($this->ttfFile())) {
@@ -2135,7 +2154,7 @@ class Securimage {
             $angleN = -$angleN;
         }
 
-        $step = abs($angle0 - $angleN) / ($this->strlen($captcha_text) - 1);
+        $step = abs($angle0 - $angleN) / (max(1, $this->strlen($captcha_text) - 1));
         $step = ($angle0 > $angleN) ? -$step : $step;
         $angle = $angle0;
 
@@ -2236,8 +2255,8 @@ class Securimage {
      * Get the width and height (in points) of a character for a given font,
      * angle, and size.
      *
-     * @param string $char The character to get dimensions for
-     * @param number $size The font size, in points
+     * @param string $char  The character to get dimensions for
+     * @param number $size  The font size, in points
      * @param number $angle The angle of the text
      *
      * @return number[] A 3-element array representing the width, height and baseline of the text
@@ -2257,11 +2276,11 @@ class Securimage {
         $py = []; // y coordinates of poles
         $rad = []; // radius of distortion from pole
         $amp = []; // amplitude
-        $x = ($this->image_width / 4); // lowest x coordinate of a pole
+        $x = round($this->image_width / 4, 0); // lowest x coordinate of a pole
         $maxX = $this->image_width - $x;  // maximum x coordinate of a pole
-        $dx = mt_rand($x / 10, $x);     // horizontal distance between poles
-        $y = mt_rand(20, $this->image_height - 20);  // random y coord
-        $dy = mt_rand(20, $this->image_height * 0.7); // y distance
+        $dx = mt_rand(round($x / 10, 0), $x);     // horizontal distance between poles
+        $y = mt_rand(20, intval($this->image_height) - 20);  // random y coord
+        $dy = mt_rand(20, intval($this->image_height * 0.7)); // y distance
         $minY = 20;                                     // minimum y coordinate
         $maxY = $this->image_height - 20;               // maximum y cooddinate
 
@@ -2302,7 +2321,7 @@ class Securimage {
                 $x *= $this->iscale;
                 $y *= $this->iscale;
                 if ($x >= 0 && $x < $width2 && $y >= 0 && $y < $height2) {
-                    $c = imagecolorat($this->tmpimg, $x, $y);
+                    $c = imagecolorat($this->tmpimg, round($x, 0), round($y, 0));
                 }
                 if ($c != $bgCol) { // only copy pixels of letters to preserve any background image
                     imagesetpixel($this->im, $ix, $iy, $c);
@@ -2322,7 +2341,7 @@ class Securimage {
 
             $theta = ($this->frand() - 0.5) * M_PI * 0.33;
             $w = $this->image_width;
-            $len = mt_rand($w * 0.4, $w * 0.7);
+            $len = mt_rand(round($w * 0.4, 0), round($w * 0.7, 0));
             $lwid = mt_rand(0, 2);
 
             $k = $this->frand() * 0.6 + 0.2;
@@ -2336,12 +2355,12 @@ class Securimage {
             $x0 = $x - 0.5 * $len * cos($theta);
             $y0 = $y - 0.5 * $len * sin($theta);
 
-            $ldx = round(-$dy * $lwid);
-            $ldy = round($dx * $lwid);
+            $ldx = round(-$dy * $lwid,0);
+            $ldy = round($dx * $lwid,0);
 
             for ($i = 0; $i < $n; ++$i) {
-                $x = $x0 + $i * $dx + $amp * $dy * sin($k * $i * $step + $phi);
-                $y = $y0 + $i * $dy - $amp * $dx * sin($k * $i * $step + $phi);
+                $x = round($x0 + $i * $dx + $amp * $dy * sin($k * $i * $step + $phi), 0);
+                $y = round($y0 + $i * $dy - $amp * $dx * sin($k * $i * $step + $phi), 0);
                 imagefilledrectangle($this->im, $x, $y, $x + $lwid, $y + $lwid, $this->gdlinecolor);
             }
         }
@@ -2360,8 +2379,8 @@ class Securimage {
         $t0 = microtime(TRUE);
         $noise_level *= M_LOG2E;
 
-        for ($x = 1; $x < $this->image_width; $x += 20) {
-            for ($y = 1; $y < $this->image_height; $y += 20) {
+        for ($x = 1; $x < intval($this->image_width); $x += 20) {
+            for ($y = 1; $y < intval($this->image_height); $y += 20) {
                 for ($i = 0; $i < $noise_level; ++$i) {
                     $x1 = mt_rand($x, $x + 20);
                     $y1 = mt_rand($y, $y + 20);
@@ -2432,9 +2451,9 @@ class Securimage {
                     break;
             }
         } else {
-            echo '<hr /><strong>'
+            echo '<hr><strong>'
                 .'Failed to generate captcha image, content has already been '
-                .'output.<br />This is most likely due to misconfiguration or '
+                .'output.<br>This is most likely due to misconfiguration or '
                 .'a PHP error was sent to the browser.</strong>';
         }
 
@@ -2529,35 +2548,47 @@ class Securimage {
             return FALSE;
 
         $fsize = filesize($this->wordlist_file);
-        if ($fsize < 128)
+        if ($fsize < 512)
             return FALSE; // too small of a list to be effective
 
         if ((int)$numWords < 1 || (int)$numWords > 5)
             $numWords = 1;
 
         $words = [];
-        $i = 0;
+        $w = 0;
+        $tries = 0;
         do {
-            fseek($fp, mt_rand(0, $fsize - 128), SEEK_SET); // seek to a random position of file from 0 to filesize-128
-            $data = fread($fp, 128); // read a chunk from our random position
+            fseek($fp, mt_rand(0, $fsize - 512), SEEK_SET); // seek to a random position of file from 0 to filesize - 512 bytes
+            $data = fread($fp, 512); // read a chunk from our random position
 
-            if ($mb_support !== FALSE) {
-                $data = mb_ereg_replace("\r?\n", "\n", $data);
-            } else {
-                $data = preg_replace("/\r?\n/", "\n", $data);
+            if (($p = $this->strpos($data, "\n")) !== FALSE) {
+                $data = $this->substr($data, $p + 1);
             }
 
-            $start = @$this->strpos($data, "\n", mt_rand(0, 56)) + 1; // random start position
-            $end = @$this->strpos($data, "\n", $start);          // find end of word
-
-            if ($start === FALSE) {
-                // picked start position at end of file
+            if (($start = @$this->strpos($data, "\n", mt_rand(0, $this->strlen($data) / 2))) === FALSE) {
                 continue;
-            } else if ($end === FALSE) {
-                $end = $this->strlen($data);
             }
 
-            $word = $strtolower_func($this->substr($data, $start, $end - $start)); // return a line of the file
+            $data = $this->substr($data, $start + 1);
+            $word = '';
+
+            for ($i = 0; $i < $this->strlen($data); ++$i) {
+                $c = $this->substr($data, $i, 1);
+                if ($c == "\r")
+                    continue;
+                if ($c == "\n")
+                    break;
+
+                $word .= $c;
+            }
+
+            $word = trim($word);
+
+            if (empty($word)) {
+                continue;
+            }
+
+            $word = $strtolower_func($word);
 
             if ($mb_support) {
                 // convert to UTF-8 for imagettftext
@@ -2565,11 +2596,15 @@ class Securimage {
             }
 
             $words[] = $word;
-        } while (++$i < $numWords);
+        } while (++$w < $numWords && $tries++ < $numWords * 2);
 
         fclose($fp);
 
-        if ($numWords < 2) {
+        if (count($words) < $numWords) {
+            return FALSE;
+        }
+
+        if ($numWords == 1) {
             return $words[0];
         } else {
             return $words;
@@ -2579,8 +2614,8 @@ class Securimage {
     /**
      * Generates a random captcha code from the set character set
      *
-     * @see Securimage::$charset  Charset option
      * @return string A randomly generated CAPTCHA code
+     * @see Securimage::$charset  Charset option
      */
     protected function generateCode() {
         $code = '';
@@ -2797,10 +2832,10 @@ class Securimage {
     /**
      * Opens a connection to the configured database.
      *
-     * @see Securimage::$use_database Use database
+     * @return bool true if the database connection was successful, false if not
      * @see Securimage::$database_driver Database driver
      * @see Securimage::$pdo_conn pdo_conn
-     * @return bool true if the database connection was successful, false if not
+     * @see Securimage::$use_database Use database
      */
     protected function openDatabase() {
         $this->pdo_conn = FALSE;
@@ -2864,9 +2899,9 @@ class Securimage {
     /**
      * Get the PDO DSN string for connecting to the database
      *
-     * @see Securimage::$database_driver Database driver
-     * @throws Exception  If database specific options are not configured
      * @return string     The DSN for connecting to the database
+     * @throws Exception  If database specific options are not configured
+     * @see Securimage::$database_driver Database driver
      */
     protected function getDsn() {
         $dsn = sprintf('%s:', $this->database_driver);
@@ -2897,8 +2932,8 @@ class Securimage {
     /**
      * Checks if the necessary database tables for storing captcha codes exist
      *
-     * @throws Exception If the table check failed for some reason
      * @return boolean true if the database do exist, false if not
+     * @throws Exception If the table check failed for some reason
      */
     protected function checkTablesExist() {
         $table = $this->pdo_conn->quote($this->database_table);
@@ -2945,8 +2980,8 @@ class Securimage {
      *
      * Based on the database adapter used, the tables will created in the existing connection.
      *
-     * @see Securimage::$database_driver Database driver
      * @return boolean true if the tables were created, false if not
+     * @see Securimage::$database_driver Database driver
      */
     protected function createDatabaseTables() {
         $queries = [];
@@ -3111,11 +3146,10 @@ class Securimage {
     /**
      * Checks to see if the captcha code has expired and can no longer be used.
      *
-     * @see Securimage::$expiry_time expiry_time
-     *
      * @param int $creation_time The Unix timestamp of when the captcha code was created
      *
      * @return bool true if the code is expired, false if it is still valid
+     * @see Securimage::$expiry_time expiry_time
      */
     protected function isCodeExpired($creation_time) {
         $expired = TRUE;
@@ -3382,10 +3416,10 @@ class Securimage {
      *
      * Generate random background noise from sweeping oscillators
      *
-     * @param float $duration How long in seconds the generated sound will be
+     * @param float $duration    How long in seconds the generated sound will be
      * @param int   $numChannels Number of channels in output wav
-     * @param int   $sampleRate Sample rate of output wav
-     * @param int   $bitRate Bits per sample (8, 16, 24)
+     * @param int   $sampleRate  Sample rate of output wav
+     * @param int   $bitRate     Bits per sample (8, 16, 24)
      *
      * @return string          Audio data in wav format
      */
@@ -3626,10 +3660,10 @@ class Securimage {
      *
      * See https://github.com/dapphp/securimage/issues/15
      *
-     * @param int    $errno PHP error number
-     * @param string $errstr String description of the error
-     * @param string $errfile File error occurred in
-     * @param int    $errline Line the error occurred on in file
+     * @param int    $errno      PHP error number
+     * @param string $errstr     String description of the error
+     * @param string $errfile    File error occurred in
+     * @param int    $errline    Line the error occurred on in file
      * @param array  $errcontext Additional context information
      *
      * @return boolean true if the error was handled, false if PHP should handle the error
@@ -3651,8 +3685,8 @@ class Securimage {
 /**
  * Color object for Securimage CAPTCHA
  *
- * @since 2.0
- * @package Securimage
+ * @since      2.0
+ * @package    Securimage
  * @subpackage classes
  *
  */
@@ -3741,9 +3775,9 @@ class Securimage_Color {
     /**
      * Construct from an rgb triplet
      *
-     * @param int $red The red component, 0-255
+     * @param int $red   The red component, 0-255
      * @param int $green The green component, 0-255
-     * @param int $blue The blue component, 0-255
+     * @param int $blue  The blue component, 0-255
      */
     protected function constructRGB($red, $green, $blue) {
         if ($red < 0)
