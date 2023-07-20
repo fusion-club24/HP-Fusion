@@ -1,7 +1,7 @@
 <?php
 // Allgemeines
-$locale['title']     = "HP-Fusion 1.3.2 Core Installation";
-$locale['sub-title'] = "HP-Fusion 1.3.2 Core Installation";
+$locale['title']     = "HP-Fusion 1.3.3 Core Installation";
+$locale['sub-title'] = "HP-Fusion 1.3.3 Core Installation";
 $locale['xml_lang']  = "de";
 $locale['charset']   = "UTF-8";
 
@@ -257,7 +257,7 @@ $locale['223'] = "Statistiken";
 $locale['230'] = "Herzlich Willkommen auf deiner Homepage!";
 
 // Abschlussnachricht
-$locale['240']  = "Die Installation von HP-Fusion 1.3.1 ist nun abgeschlossen und benutzbar.<br />\n";
+$locale['240']  = "Die Installation von HP-Fusion 1.3.3 ist nun abgeschlossen und benutzbar.<br />\n";
 $locale['240'] .= "Sobald du unterhalb auf &quot;<em>Weiter</em>&quot; klickst, kommst du auf deine neue Homepage.<br />\n";
 $locale['240'] .= "<strong>ACHTUNG</strong> Nachdem du deine Homepage betreten hast, l&ouml;sche unbedingt die <strong>setup.php</strong> von deinem Server und setzte die <strong>Schreibrechte der config.php auf 0644</strong>! ";
 $locale['240'] .= "Andersfalls entsteht eine Sicherheitsl&uuml;cke.<br />\n";
@@ -265,8 +265,8 @@ $locale['240'] .= "Vielen Dank, dass du dich f&uuml;r HP-Fusion entschieden hast
 
 // Standart Daten - Zeit und Datum
 $locale['shortdate']     = "%d.%m.%y";
-$locale['longdate']      = "%d. %B %Y um %H:%M:%S";
-$locale['forumdate']     = "%d.%m.%Y um %H:%M";
+$locale['longdate']      = "%d. %B %Y - %H:%M:%S";
+$locale['forumdate']     = "%d.%m.%Y - %H:%M";
 $locale['newsdate']      = "%d. %B %Y";
 $locale['subheaderdate'] = "%d. %B %Y - %H:%M:%S";
 

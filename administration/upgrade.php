@@ -29,11 +29,11 @@ if (file_exists(LOCALE.LOCALESET."admin/upgrade.php")) {
 	include LOCALE."English/admin/upgrade.php";
 }
 if(isset($_POST['upgrade_install'])) {
-$result1 = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='HP-Fusion 1.3.2' WHERE settings_name='version'");
+$result1 = dbquery("UPDATE ".DB_SETTINGS." SET settings_value='HP-Fusion 1.3.3' WHERE settings_name='version'");
 redirect(FUSION_SELF.$aidlink."");
 }
 opentable($locale['400']);
-$hpf_version = "HP-Fusion 1.3.2";
+$hpf_version = "HP-Fusion 1.3.3";
     
     
     if ( $settings['version'] == $hpf_version ) {

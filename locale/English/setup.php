@@ -1,7 +1,7 @@
 <?php
 // General
-$locale['title'] = "HP-Fusion 1.3.1 Core Installation";
-$locale['sub-title'] = "HP-Fusion 1.3.1 Core Installation";
+$locale['title'] = "HP-Fusion 1.3.3 Core Installation";
+$locale['sub-title'] = "HP-Fusion 1.3.3 Core Installation";
 $locale['xml_lang'] = "en";
 $locale['charset'] = "iso-8859-1";
 
@@ -255,7 +255,7 @@ $locale['223'] = "Statistics";
 $locale['230'] = "Welcome to your site";
 
 // Final message
-$locale['240'] = "Setup is complete, HP-Fusion 1.3.1 is now ready for use.<br />
+$locale['240'] = "Setup is complete, HP-Fusion 1.3.3 is now ready for use.<br />
 Click Finish to go to your HP-Fusion powered site.<br />
 <strong>Note:</strong> After you enter your site you should delete setup.php from
 your server and chmod your config.php back to 644 for security purposes.<br /><br />
