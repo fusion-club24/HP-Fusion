@@ -9,6 +9,9 @@
 | Filename: screenshot.php
 | Author: Harlekin
 +--------------------------------------------------------+
+| Angepasst neue Google PageSpeed Insights API 
+| Author: 21Matze
++--------------------------------------------------------+
 | This program is released as free software under the
 | Affero GPL license. You can redistribute it and/or
 | modify it under the terms of this license which you
@@ -36,21 +39,28 @@ echo "<div style='width:80%; text-align:center; margin:0 auto; padding:4px;' cla
 echo "</div>";
 
 if (!empty($_POST['url'])){
-	$site_url = $_POST['url'];
+	 // Website url 
+    $site_url = $_POST['url'];
 	$img_name = str_replace(array('https:', 'http:', 'www', '/', '.'),array('', '', '', '', ''),$site_url);
 	
 	if (preg_match('/^(http|https):\/\/([A-Z0-9][A-Z0-9_-]*(?:\.[A-Z0-9][A-Z0-9_-]*)+):?(\d+)?\/?/i', $site_url)) {
-		$pagespeed_data = file_get_contents("https://www.googleapis.com/pagespeedonline/v2/runPagespeed?url=".$site_url."&screenshot=true");
-		$pagespeed_data = json_decode($pagespeed_data, true);
-		$screen = $pagespeed_data['screenshot']['data'];
-		$screen = str_replace(array('_','-'),array('/','+'),$screen);
-
-		echo "<div style='width:80%; text-align:center; margin:0 auto; padding:4px;' class='tbl'>";
-			echo "<br /><img src=\"data:image/jpeg;base64,".$screen."\" />";
-		echo "</div>";
-		
-		$create = "data:image/jpeg;base64,".$screen."";
-		file_put_contents(IMAGES.'weblink_sites/'.$img_name.'.jpg', base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $create)));
+    
+// Call Google PageSpeed Insights API 
+$googlePagespeedData = file_get_contents("https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$site_url&screenshot=true"); 
+ 
+// Decode json data 
+$googlePagespeedData = json_decode($googlePagespeedData, true); 
+ 
+// Retrieve screenshot image data 
+$screenshot_data = $googlePagespeedData['lighthouseResult']['audits']['final-screenshot']['details']['data']; 
+ 
+// Display screenshot image 
+echo "<div style='width:80%; text-align:center; margin:0 auto; padding:4px;' class='tbl'>";
+echo '<br /><img src="'.$screenshot_data.'" />';
+ echo "</div>"; 
+$create = "".$screenshot_data."";
+file_put_contents(IMAGES.'weblink_sites/'.$img_name.'.jpg', base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $create)));    
+    
 	} else {
 		echo "<div style='width:80%; text-align:center; margin:0 auto; padding:4px;' class='tbl'>";
 			echo "<div class='admin-message'><strong>".$locale['420']."</strong></div>";

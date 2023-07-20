@@ -10,6 +10,9 @@
 | Author: Nick Jones (Digitanium)
 | Modified for HP-Fusion by Harlekin
 +--------------------------------------------------------+
+| weblink vorschau
+| Author: 21Matze
++--------------------------------------------------------+
 | This program is released as free software under the
 | Affero GPL license. You can redistribute it and/or
 | modify it under the terms of this license which you
