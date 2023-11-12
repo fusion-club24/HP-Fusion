@@ -93,6 +93,7 @@ if ($settings['cronjob_day'] < (time()-86400)) {
 
 // Error handling
 if (iADMIN  && checkrights("ERRO") && count($_errorHandler) > 0) {
+global $locale;
 	echo "<div class='admin-message'>".str_replace("[ERROR_LOG_URL]", ADMIN."errors.php".$aidlink, $locale['err_101'])."</div>\n";
 }
 
