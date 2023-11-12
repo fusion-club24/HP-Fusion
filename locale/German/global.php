@@ -11,8 +11,12 @@ $locale['tinymce']   = "de";
 $locale['phpmailer'] = "de";
 
 // Monate
-$locale['months']      = "&nbsp|Januar|Februar|M&auml;rz|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember";
-$locale['shortmonths'] = "&nbsp|Jan|Feb|M&auml;r|Apr|Mai|Jun|Jul|Aug|Sept|Okt|Nov|Dez";
+$locale['weekdays'] = "Sonntag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag";
+// Full & Short Months
+$locale['months'] = "&nbsp|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember";
+$locale['shortmonths'] = "&nbsp|Jan|Feb|Mrz|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez";
+$locale['weekdays'] = "Sonntag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag";
+$locale['shortweekdays'] = "So.|Mo.|Di.|Mi.|Do.|Fr.|Sa.";
 
 // Benutzerlevel
 $locale['user0']          = "Gast";
