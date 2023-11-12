@@ -255,7 +255,11 @@ function theme_exists($theme) {
 // Set a valid theme
 function set_theme($theme) {
 	global $settings, $locale;
-
+$result = dbquery("SELECT `settings_value` FROM ".DB_SETTINGS." WHERE `settings_name` = 'theme' LIMIT 1");
+	if (dbrows($result)) {
+		$data = dbarray($result);
+		$settings['theme'] = $data['settings_value'];
+	}
 	// PHP Fusion
 	if (!defined("THEME")) {
 		// If the theme is valid set it
@@ -951,6 +955,40 @@ $options['tz_override'] =  'Europe/Berlin';
 
     return format_date($format, $offset);
 }
+
+// showdate 2 funktion neu
+function showdate2($format, $val) {
+   global $settings, $userdata;
+
+   if (isset($userdata['user_offset'])) {
+      $offset = $userdata['user_offset']+$settings['serveroffset'];
+   } else {
+      $offset = $settings['timeoffset']+$settings['serveroffset'];
+   }
+ // Correction for Daylight saving Time
+ $dls = 0;
+ if (date('I', $val+($offset*3600)) == 1){
+ $dls = 3600;
+ }
+
+   if ($format == "shortdate" || $format == "longdate" || $format == "forumdate" || $format == "newsdate") {
+      return format_date($settings[$format], $val+$dls+($offset*3600));
+   } else {
+      return format_date($format, $val+$dls+($offset*3600));
+   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Format date - replacement for strftime()
  *
@@ -971,7 +1009,9 @@ function format_date($format, $time) {
  );
 
  $date = DateTimeImmutable::createFromFormat('U', $time);
- if ($settings['locale'] == 'English') {
+##################################################################################################################
+// old 
+ /*if ($settings['locale'] == 'English') {
       return $date->format($format);
    } else {
       $_months_en = "&nbsp;|January|February|March|April|May|June|July|August|September|October|November|December";
@@ -980,8 +1020,35 @@ function format_date($format, $time) {
       $date_lang = str_replace($exp_months_en, $exp_settings_locale, $date->format($format));
       
       return $date_lang;
-   }
+   }*/
+#######################################################################################################################   
+// php 8.2 fix monat monat kurz tag lang tag kurz
+if ($settings['locale'] != "English") {
+      // Replacer arrays
+      $search_months_long = "&nbsp;|January|February|March|April|May|June|July|August|September|October|November|December";
+      $search_months_short ="&nbps;|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Oct|Nov|Dec";
+      $search_weekdays_long = "Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday";
+      $search_weekdays_short = "Sun|Mon|Tue|Wed|Thu|Fri|Sat";
+      if (IsSet($locale['shortweekdays'])) {
+         $search = explode("|", ($search_months_long."|".$search_months_short."|".$search_weekdays_long."|".$search_weekdays_short));
+         $replace= explode("|", ($locale['months']."|".$locale['shortmonths']."|".$locale['weekdays']."|".$locale['shortweekdays']));
+      }
+      else {
+         $search = explode("|", ($search_months_long."|".$search_months_short."|".$search_weekdays_long));
+         $replace= explode("|", ($locale['months']."|".$locale['shortmonths']."|".$locale['weekdays']));
+      }
+      return str_replace($search, $replace, $date->format($format));      
+  # return str_replace($search, $replace, $date->date($format));  
+   } else{
+
+  
+    return $date->format($format);
+ }
+
+
 }
+
+
 // Translate bytes into kB, MB, GB or TB by CrappoMan, lelebart fix
 function parsebytesize($size, $digits = 2, $dir = false) {
 	global $locale;
