@@ -15,8 +15,8 @@
 | copyright header is strictly prohibited without
 | written permission from the original author(s).
 +--------------------------------------------------------*/
-require_once."maincore.php";
-#require_once THEMES."templates/header.php";
+require_once "maincore.php";
+require_once THEMES."templates/header.php";
 include LOCALE.LOCALESET."search.php";
 
 add_to_title($locale['global_202']);
