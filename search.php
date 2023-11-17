@@ -2,7 +2,7 @@
 /*-------------------------------------------------------+
 | PHP-Fusion Content Management System
 | Copyright (C) PHP-Fusion Inc
-| https://www.php-fusion.co.uk/
+| https://www.phpfusion.com/
 +--------------------------------------------------------+
 | Filename: search.php
 | Author: Robert Gaudyn (Wooya)
@@ -15,7 +15,7 @@
 | copyright header is strictly prohibited without
 | written permission from the original author(s).
 +--------------------------------------------------------*/
-require_once "maincore.php";
+require_once __DIR__."/maincore.php";
 require_once THEMES."templates/header.php";
 include LOCALE.LOCALESET."search.php";
 
@@ -77,8 +77,8 @@ if (isset($_REQUEST['forum_id'])) {
     $_REQUEST['forum_id'] = 0;
 }
 
-$radio_button = array();
-$form_elements = array();
+$radio_button = [];
+$form_elements = [];
 $available = [];
 $dh = opendir(INCLUDES."search");
 while (FALSE !== ($entry = readdir($dh))) {
@@ -102,7 +102,7 @@ for ($i = 0; $i < $c_available - 1; $i++) {
 }
 sort($radio_button);
 
-opentable($locale['400']);
+opentable(str_replace('[SITENAME]', $settings['sitename'], $locale['400']));
 
 // maybe rewrite with jQuery
 $search_js = "<script type='text/javascript'>\n/*<![CDATA[*/\n";
@@ -135,7 +135,7 @@ $search_js .= "document.getElementById('order1').disabled = false;\n";
 $search_js .= "document.getElementById('order2').disabled = false;\n";
 $search_js .= "document.getElementById('chars').disabled = false;\n";
 $search_js .= "break;\n}\n}\n/*]]>*/\n</script>";
-add_to_head($search_js);
+add_to_footer($search_js);
 
 echo "<form id='searchform' name='searchform' method='POST' action='".BASEDIR."search.php'>\n";
 echo "<table width='100%' cellpadding='0' cellspacing='1' class='tbl-border'>\n<tr>\n";
@@ -207,7 +207,11 @@ function search_striphtmlbbcodes($text) {
 
 function search_textfrag($text) {
     if ($_REQUEST['chars'] != 0) {
-        $text = nl2br(stripslashes(substr($text, 0, $_REQUEST['chars'])."..."));
+        if (function_exists('mb_substr')) {
+            $text = nl2br(stripslashes(mb_substr($text, 0, $_REQUEST['chars'], 'UTF-8')."..."));
+        } else {
+            $text = nl2br(stripslashes(substr($text, 0, $_REQUEST['chars'])."..."));
+        }
     } else {
         $text = nl2br(stripslashes($text));
     }
@@ -270,7 +274,7 @@ function search_navigation($rows) {
 $composevars = "method=".$_REQUEST['method']."&amp;datelimit=".$_REQUEST['datelimit']."&amp;fields=".$_REQUEST['fields']."&amp;sort=".$_REQUEST['sort']."&amp;order=".$_REQUEST['order']."&amp;chars=".$_REQUEST['chars']."&amp;forum_id=".$_REQUEST['forum_id']."&amp;";
 
 $memory_limit = str_replace("m", "", strtolower(ini_get("memory_limit"))) * 1024 * 1024;
-$memory_limit = !isnum($memory_limit) ? 8 * 1024 * 1024 : $memory_limit < 8 * 1024 * 1024 ? 8 * 1024 * 1024 : $memory_limit;
+$memory_limit = (!isnum($memory_limit) ? 8 * 1024 * 1024 : $memory_limit < 8 * 1024 * 1024) ? 8 * 1024 * 1024 : $memory_limit;
 $memory_limit = $memory_limit - ceil($memory_limit / 4);
 $global_string_count = 0;
 $site_search_count = 0;
@@ -368,6 +372,6 @@ if ($_REQUEST['stext'] != "" && strlen($_REQUEST['stext']) >= 3) {
     opentable($locale['408']);
     echo $locale['501'];
     closetable();
-}  
+}
 
 require_once THEMES."templates/footer.php";
