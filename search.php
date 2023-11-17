@@ -368,6 +368,6 @@ if ($_REQUEST['stext'] != "" && strlen($_REQUEST['stext']) >= 3) {
     opentable($locale['408']);
     echo $locale['501'];
     closetable();
-}  */
+}  
 
 require_once THEMES."templates/footer.php";
