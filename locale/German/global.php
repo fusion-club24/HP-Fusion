@@ -12,7 +12,7 @@ $locale['phpmailer'] = "de";
 
 // Monate
 $locale['weekdays'] = "Sonntag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag";
-// Full & Short Months
+// Full & Short Months tage
 $locale['months'] = "&nbsp|Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember";
 $locale['shortmonths'] = "&nbsp|Jan|Feb|Mrz|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez";
 $locale['weekdays'] = "Sonntag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag";
